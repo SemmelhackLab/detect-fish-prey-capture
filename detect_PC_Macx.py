@@ -185,6 +185,9 @@ for j in range(0, len(eye_files)):  # READ EACH TRIAL
         if first_pc_bout == 0:  # Check whether 1st prey capture bout has already been found
             print("First prey capture bout already found")
             continue
+        if TailEye[i]['frames'][0] < 300 or TailEye[i]['frames'][0] > 1800:
+            print("No stimulus yet")
+            continue
 
         # 5s ---------------------- DETECT PREY CAPTURE -------------------------------------------------------------
         bout_candid = {'frames': TailEye[i]['frames'], 'bout_angles': TailEye[i]['bout_angles'],
