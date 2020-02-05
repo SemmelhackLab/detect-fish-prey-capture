@@ -260,7 +260,7 @@ for j in range(0, len(eye_files)):  # READ EACH TRIAL
 
         pre_post_saccade_win[0] = int((pre_post_saccade_win[0] * float(Fs)))
         pre_post_saccade_win[1] = int((pre_post_saccade_win[1] * float(Fs)))
-        
+
         if first_pc_bout == 1:  # first bout
             PC += 1  # is there a prey capture in this trial?
             fish_PC.append(trial_name)
@@ -269,9 +269,9 @@ for j in range(0, len(eye_files)):  # READ EACH TRIAL
             max_tail.append(np.max(TailEye[i]['bout_angles']))
             pre_version.append((eyes[0]['LeftEye'][onset - pre_post_saccade_win[0]] - eyes[0]['RightEye'][onset - pre_post_saccade_win[0]])/2.0)
             post_version.append((eyes[0]['LeftEye'][onset - pre_post_saccade_win[1]] + eyes[0]['RightEye'][onset + pre_post_saccade_win[1]])/2.0)
-            
+
             delta_version.append(((eyes[0]['LeftEye'][onset - pre_post_saccade_win[1]] + eyes[0]['RightEye'][onset + pre_post_saccade_win[1]])/2.0) - ((eyes[0]['LeftEye'][onset - pre_post_saccade_win[0]] - eyes[0]['RightEye'][onset - pre_post_saccade_win[0]])/2.0))
-            
+
             pre_saccade_left.append(eyes[0]['LeftEye'][l_sac_on - pre_post_saccade_win[0]])
             post_saccade_left.append(eyes[0]['LeftEye'][l_sac_on + pre_post_saccade_win[1]])
 
@@ -292,8 +292,8 @@ print('FISH WITH PC', set(sample_fish))
 print('# OF FISH WITH PC', len(set(sample_fish)))
 print('TOTAL # OF PREY CAPTURES', PC)
 # print(np.mean(response_time), np.std(response_time))
-results = izip_longest(fish_PC, pc_onset, duration, avg_tail, max_tail, version, pre_saccade_left, post_saccade_left, pre_saccade_right, post_saccade_right)
-header = izip_longest(['Fish'], ['PC Onset'], ['Bout duration'], ['Mean Tail'], ['Max Tail'], ['Version'], ['Pre-saccade left'], ['Post-saccade left'], ['Pre-saccade right'], ['Post-saccade right'])
+results = izip_longest(fish_PC, pc_onset, duration, avg_tail, max_tail, pre_version, post_version, delta_version, pre_saccade_left, post_saccade_left, pre_saccade_right, post_saccade_right)
+header = izip_longest(['Fish'], ['PC Onset'], ['Bout duration'], ['Mean Tail'], ['Max Tail'], ['Pre-Version'], ['Post-Version'], ['Delta-Version']['Pre-saccade left'], ['Post-saccade left'], ['Pre-saccade right'], ['Post-saccade right'])
 
 with open(maindir + "Summary" + '.csv', 'wb') as myFile:
     # with open(dir_output + 'Velocity_Acceleration_' + filename + '.csv', 'wb') as myFile:
