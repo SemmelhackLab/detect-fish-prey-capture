@@ -32,13 +32,16 @@ bout_thresh = 0.40  # 0.00 - 1.00 threshold value for extracting bouts, higher m
 peakthres = 4  # 0.00 - 20.00 lower vale more peaks, for calculating tail beat frequency
 # ---------------------PARAMETERS FOR DETECTING THE PREY CAPTURE BOUTS, MINIMUM VALUES-----------------------------------
 filter_avg_tail = 5.0 # threshold for average tail bout angle
-filter_avg_binocular = 17.0 # threshold for eye angle binocular convergence, unit in degrees
+filter_avg_max_tail = 15.0 # threshold for max tail angle
+filter_avg_binocular = 25.0 # threshold for eye angle binocular convergence, unit in degrees
 filter_length_bout = 0 # length of bout based on frame number, unit in frame number
 filter_eye_vel = -0.1 # diverging eye velocity in degrees/ms, unit in deg/ms
 filter_eye_diverge = -1.0 # eye divergence by degrees, unit in deg
 thresh_saccade_speed = 0.2 # the onset of eye movement should be greater than saccade threshold, unit in deg/ms
 # ---------------------PARAMETERS FOR EXTRACTING PRE AND POST SACCADIC BOUTS------------------------------------------------
 pre_post_saccade_win = [0.5,0.5] # pre and post saccadic threshold in seconds
+pre_post_saccade_win[0] = int((pre_post_saccade_win[0] * float(Fs)))
+pre_post_saccade_win[1] = int((pre_post_saccade_win[1] * float(Fs)))
 # ---------------------VISUAL PREY PARAMETERS------------------------------------------------
 preypoints = [10, 70] # direction of prey in visual angle, e.g. [10,70] means going from 10deg to 70 deg
 sensory_delay = 0.1 # how many frames to consider for sensory delay in seconds
@@ -56,7 +59,7 @@ cutoff = 10  # desired cutoff frequency of the filter, Hz
 # THIS PART IS ONLY FOR COMPILING ALL THE INPUT FILES. THIS IS SUBJECTIVE, IT DEPENDS ON HOW YOU ORGANIZE YOUR DATA
 # I organize it this way home/experiment/fish/data (eye, tail), This part will combine all the experiments I have
 # Directories
-maindir = 'E:\\Macx\\PC analysis\\'
+maindir = 'F:\\Macx\\export\\analysis\\Master directory\\'
 dir_output = maindir
 
 expts = list()
@@ -208,23 +211,46 @@ for j in range(0, len(eye_files)):  # READ EACH TRIAL
         isPC = ispreycap(bout_candid, PC_threshold, tfactor)
         isPC = all(1 == pc for pc in
                    isPC.values())  # check whether this bout satisfied all the filters set on the PC_threshold
+        
+        tail = np.mean(TailEye[i]['bout_angles'])
+
+        if tail >= filter_avg_max_tail:
+            print("STRUGGLE??")
+            print("TRIAL")
+            print(eye_files[j][0])
+            print(tail_files[j][0])
+            print('Tail bout', TailEye[i]['frames'])
+            print('Tail bout angle', tail)
+            print('Mean binocular angle', np.mean(TailEye[i]['sum_eyeangles']))
+            print('TAIL BOUT FREQ', TailEye[i]['tailfreq'])
+            continue
+
 
         if not isPC:
+            print("NOT PREY CAPTURE")
+            print("TRIAL")
+            print(eye_files[j][0])
+            print(tail_files[j][0])
+            print('Tail bout', TailEye[i]['frames'])
+            print('Tail bout angle', tail)
+            print('Mean binocular angle', np.mean(TailEye[i]['sum_eyeangles']))
+            print('TAIL BOUT FREQ', TailEye[i]['tailfreq'])
             # if isPC is false, this bout is not prey capture, move to next one
             continue
         # 5e ---------------------------------------------------------------------------------------------------------
 
         print("DETECTED PREY CAPTURE BOUT")
+        print("TRIAL")
         print(eye_files[j][0])
         print(tail_files[j][0])
         print('Tail bout', TailEye[i]['frames'])
+        print('Tail bout angle', tail)
         print('Mean binocular angle', np.mean(TailEye[i]['sum_eyeangles']))
         print('TAIL BOUT FREQ', TailEye[i]['tailfreq'])
 
         if i == 0:
             rtime.append((TailEye[0]['frames'][0] / tfactor))
 
-        tail = np.mean(TailEye[i]['bout_angles'])
 
         # get the index, and value of the saccade onset based on velocity
         # Get the velocity maximum peak
@@ -258,9 +284,6 @@ for j in range(0, len(eye_files)):  # READ EACH TRIAL
         #    print("NO STIMULUS YET")
         #    continue
 
-        pre_post_saccade_win[0] = int((pre_post_saccade_win[0] * float(Fs)))
-        pre_post_saccade_win[1] = int((pre_post_saccade_win[1] * float(Fs)))
-
         if first_pc_bout == 1:  # first bout
             PC += 1  # is there a prey capture in this trial?
             fish_PC.append(trial_name)
@@ -291,9 +314,10 @@ for j in range(0, len(eye_files)):  # READ EACH TRIAL
 print('FISH WITH PC', set(sample_fish))
 print('# OF FISH WITH PC', len(set(sample_fish)))
 print('TOTAL # OF PREY CAPTURES', PC)
+print("TOTAL # OF TRIALS", len(eye_files))
 # print(np.mean(response_time), np.std(response_time))
 results = izip_longest(fish_PC, pc_onset, duration, avg_tail, max_tail, pre_version, post_version, delta_version, pre_saccade_left, post_saccade_left, pre_saccade_right, post_saccade_right)
-header = izip_longest(['Fish'], ['PC Onset'], ['Bout duration'], ['Mean Tail'], ['Max Tail'], ['Pre-Version'], ['Post-Version'], ['Delta-Version']['Pre-saccade left'], ['Post-saccade left'], ['Pre-saccade right'], ['Post-saccade right'])
+header = izip_longest(['Fish'], ['PC Onset'], ['Bout duration'], ['Mean Tail'], ['Max Tail'], ['Pre-Version'], ['Post-Version'], ['Delta-Version'], ['Pre-saccade left'], ['Post-saccade left'], ['Pre-saccade right'], ['Post-saccade right'])
 
 with open(maindir + "Summary" + '.csv', 'wb') as myFile:
     # with open(dir_output + 'Velocity_Acceleration_' + filename + '.csv', 'wb') as myFile:
