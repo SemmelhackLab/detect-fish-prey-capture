@@ -20,36 +20,37 @@ from itertools import izip_longest
 import seaborn as sns
 from detect_preycapture import *
 
-plt.style.use(['dark_background'])
+#plt.style.use(['dark_background'])
 
 # ============================SET PARAMETERS=======================================================
 
 # ---------------------VIDEO RECORDING PARAMETERS------------------------------------------------
-Fs = 300 # Sampling frequency used for the video
-tfactor = Fs/1000.0  # convert fps to fpms
+Fs = 300  # Sampling frequency used for the video
+tfactor = Fs / 1000.0  # convert fps to fpms
 # ---------------------PARAMETERS FOR EXTRACTING THE BOUTS------------------------------------------------
 bout_thresh = 0.40  # 0.00 - 1.00 threshold value for extracting bouts, higher more bouts
 peakthres = 4  # 0.00 - 20.00 lower vale more peaks, for calculating tail beat frequency
 # ---------------------PARAMETERS FOR DETECTING THE PREY CAPTURE BOUTS, MINIMUM VALUES-----------------------------------
-filter_avg_tail = 5.0 # threshold for average tail bout angle
-filter_avg_max_tail = 15.0 # threshold for max tail angle
-filter_avg_binocular = 25.0 # threshold for eye angle binocular convergence, unit in degrees
-filter_length_bout = 0 # length of bout based on frame number, unit in frame number
-filter_eye_vel = -0.1 # diverging eye velocity in degrees/ms, unit in deg/ms
-filter_eye_diverge = -1.0 # eye divergence by degrees, unit in deg
-thresh_saccade_speed = 0.2 # the onset of eye movement should be greater than saccade threshold, unit in deg/ms
+filter_avg_tail = 5.0  # threshold for average tail bout angle
+filter_avg_max_tail = 15.0  # threshold for max tail angle
+filter_avg_binocular = 25.0  # threshold for eye angle binocular convergence, unit in degrees
+filter_length_bout = 0  # length of bout based on frame number, unit in frame number
+filter_eye_vel = -0.1  # diverging eye velocity in degrees/ms, unit in deg/ms
+filter_eye_diverge = -1.0  # eye divergence by degrees, unit in deg
+thresh_saccade_speed = 0.2  # the onset of eye movement should be greater than saccade threshold, unit in deg/ms
 # ---------------------PARAMETERS FOR EXTRACTING PRE AND POST SACCADIC BOUTS------------------------------------------------
-pre_post_saccade_win = [0.5,0.5] # pre and post saccadic threshold in seconds
+pre_post_saccade_win = [0.5, 0.5]  # pre and post saccadic threshold in seconds
 pre_post_saccade_win[0] = int((pre_post_saccade_win[0] * float(Fs)))
 pre_post_saccade_win[1] = int((pre_post_saccade_win[1] * float(Fs)))
 # ---------------------VISUAL PREY PARAMETERS------------------------------------------------
-preypoints = [10, 70] # direction of prey in visual angle, e.g. [10,70] means going from 10deg to 70 deg
-sensory_delay = 0.1 # how many frames to consider for sensory delay in seconds
-sensory_delay = int(Fs*float(sensory_delay)) # convert in # frames
-delay = 0.2 # time window to the tail onset for finding the minimum eye onset in seconds
-delay = int(Fs*float(delay)) # convert in # frames
-speed = 40.0 # prey speed in degrees per second
-padding_nonstimulus = [0, 0] # to add the frames as a waiting time to determine prey location, visual stimulus appears usually 3 s after trial
+preypoints = [10, 70]  # direction of prey in visual angle, e.g. [10,70] means going from 10deg to 70 deg
+sensory_delay = 0.1  # how many frames to consider for sensory delay in seconds
+sensory_delay = int(Fs * float(sensory_delay))  # convert in # frames
+delay = 0.2  # time window to the tail onset for finding the minimum eye onset in seconds
+delay = int(Fs * float(delay))  # convert in # frames
+speed = 40.0  # prey speed in degrees per second
+padding_nonstimulus = [0,
+                       0]  # to add the frames as a waiting time to determine prey location, visual stimulus appears usually 3 s after trial
 # ---------------------LOW PASS FILTER------------------------------------------------
 order = 3
 fs = Fs  # sample rate, Hz
@@ -67,18 +68,19 @@ expts += [xp for xp in os.listdir(maindir) if ".csv" not in xp]  # store the fis
 
 # dir = 'C:\\Users\\Semmelhack Lab\\Desktop\\analysis\\'
 
-eye_files = [] # DECLARE A LIST TO STORE THE EYE ANGLE FILES
+eye_files = []  # DECLARE A LIST TO STORE THE EYE ANGLE FILES
 tail_files = []
 
-fishIDs = list() # LIST FOR STORING EACH FISH NAME
-fishIDs_dir = list() # LIST FOR SOME INFO FOR EACH FISH
+fishIDs = list()  # LIST FOR STORING EACH FISH NAME
+fishIDs_dir = list()  # LIST FOR SOME INFO FOR EACH FISH
 
 for exp in expts:
-    fishIDs += [exp+ '\\' + fish for fish in os.listdir(maindir + exp + '\\') if ".csv" not in fish]  # store the fish filenames
+    fishIDs += [exp + '\\' + fish for fish in os.listdir(maindir + exp + '\\') if
+                ".csv" not in fish]  # store the fish filenames
     # STORE [BIG PREY OR LEFT PREY FOR EACH FISH, RESPONSE TIME OF THE PREY CAPTURE BOUT]
-    fishIDs_dir += [{str(fish): [0, 0], str(fish) +'_bigorsmall': [], str(fish) +'_resptime': [] } for fish in fishIDs]
+    fishIDs_dir += [{str(fish): [0, 0], str(fish) + '_bigorsmall': [], str(fish) + '_resptime': []} for fish in fishIDs]
 
-for fish in fishIDs: # READ EACH FISH EYE AND TAIL ANGLES
+for fish in fishIDs:  # READ EACH FISH EYE AND TAIL ANGLES
 
     eyefile = maindir + fish + '\\eye_angle\\'
     tailfile = maindir + fish
@@ -123,7 +125,7 @@ avg_tail = []
 max_tail = []
 pre_version = []
 post_version = []
-delta_version =[]
+delta_version = []
 
 for j in range(0, len(eye_files)):  # READ EACH TRIAL
 
@@ -137,7 +139,10 @@ for j in range(0, len(eye_files)):  # READ EACH TRIAL
         continue
 
     dir_output = str(eye_files[j][1])  # output for saving some info
+    plotdir = eye_files[j][0].replace(eye_files[j][5], "") + "plots\\"
 
+    if not os.path.exists(plotdir):  # create an output directory
+        os.makedirs(plotdir)
     # 0e ---------------------------------------------------------------------------------------
 
     # smaller = None
@@ -211,7 +216,7 @@ for j in range(0, len(eye_files)):  # READ EACH TRIAL
         isPC = ispreycap(bout_candid, PC_threshold, tfactor)
         isPC = all(1 == pc for pc in
                    isPC.values())  # check whether this bout satisfied all the filters set on the PC_threshold
-        
+
         tail = np.mean(TailEye[i]['bout_angles'])
 
         if tail >= filter_avg_max_tail:
@@ -224,7 +229,6 @@ for j in range(0, len(eye_files)):  # READ EACH TRIAL
             print('Mean binocular angle', np.mean(TailEye[i]['sum_eyeangles']))
             print('TAIL BOUT FREQ', TailEye[i]['tailfreq'])
             continue
-
 
         if not isPC:
             print("NOT PREY CAPTURE")
@@ -251,7 +255,6 @@ for j in range(0, len(eye_files)):  # READ EACH TRIAL
         if i == 0:
             rtime.append((TailEye[0]['frames'][0] / tfactor))
 
-
         # get the index, and value of the saccade onset based on velocity
         # Get the velocity maximum peak
         print(TailEye[i]['frames'][0], TailEye[i]['frames'][1])
@@ -276,11 +279,11 @@ for j in range(0, len(eye_files)):  # READ EACH TRIAL
         else:
             l_minpeak, l_min = min(enumerate(TailEye[i]['left_vel_delay'][0:l_maxpeak]), key=operator.itemgetter(1))
 
-        r_sac_on = TailEye[i]['frames'][0] - delay + int(math.ceil((r_maxpeak + r_minpeak)/2))
-        l_sac_on = TailEye[i]['frames'][0] - delay + int(math.ceil((l_maxpeak + l_minpeak)/2))
+        r_sac_on = TailEye[i]['frames'][0] - delay + int(math.ceil((r_maxpeak + r_minpeak) / 2))
+        l_sac_on = TailEye[i]['frames'][0] - delay + int(math.ceil((l_maxpeak + l_minpeak) / 2))
 
         onset = min(r_sac_on, l_sac_on)
-        #if (TailEye[i]['frames'][0] - padding_nonstimulus[0]) < 0:
+        # if (TailEye[i]['frames'][0] - padding_nonstimulus[0]) < 0:
         #    print("NO STIMULUS YET")
         #    continue
 
@@ -290,10 +293,15 @@ for j in range(0, len(eye_files)):  # READ EACH TRIAL
             sample_fish.append(eye_files[j][3])
 
             max_tail.append(np.max(TailEye[i]['bout_angles']))
-            pre_version.append((eyes[0]['LeftEye'][onset - pre_post_saccade_win[0]] - eyes[0]['RightEye'][onset - pre_post_saccade_win[0]])/2.0)
-            post_version.append((eyes[0]['LeftEye'][onset - pre_post_saccade_win[1]] + eyes[0]['RightEye'][onset + pre_post_saccade_win[1]])/2.0)
+            pre_version.append((eyes[0]['LeftEye'][onset - pre_post_saccade_win[0]] - eyes[0]['RightEye'][
+                onset - pre_post_saccade_win[0]]) / 2.0)
+            post_version.append((eyes[0]['LeftEye'][onset - pre_post_saccade_win[1]] + eyes[0]['RightEye'][
+                onset + pre_post_saccade_win[1]]) / 2.0)
 
-            delta_version.append(((eyes[0]['LeftEye'][onset - pre_post_saccade_win[1]] + eyes[0]['RightEye'][onset + pre_post_saccade_win[1]])/2.0) - ((eyes[0]['LeftEye'][onset - pre_post_saccade_win[0]] - eyes[0]['RightEye'][onset - pre_post_saccade_win[0]])/2.0))
+            delta_version.append(((eyes[0]['LeftEye'][onset - pre_post_saccade_win[1]] + eyes[0]['RightEye'][
+                onset + pre_post_saccade_win[1]]) / 2.0) - ((eyes[0]['LeftEye'][onset - pre_post_saccade_win[0]] -
+                                                             eyes[0]['RightEye'][
+                                                                 onset - pre_post_saccade_win[0]]) / 2.0))
 
             pre_saccade_left.append(eyes[0]['LeftEye'][l_sac_on - pre_post_saccade_win[0]])
             post_saccade_left.append(eyes[0]['LeftEye'][l_sac_on + pre_post_saccade_win[1]])
@@ -304,6 +312,27 @@ for j in range(0, len(eye_files)):  # READ EACH TRIAL
             response_time.append((TailEye[i]['frames'][0] - padding_nonstimulus[0]) / tfactor)
             duration.append(TailEye[i]['frames'])
 
+            f, (ax1, ax2) = plt.subplots(2, 1, sharex=True, figsize=(14, 10))
+            # f, ax2 = plt.subplots(1, 1, sharex=True, figsize=(50, 35))
+            f.subplots_adjust(hspace=0)
+
+            ax1.plot(eyes[0]['RightEye'], c=[0.1, 0.3, 0.6], lw=3)
+            ax1.plot(eyes[0]['LeftEye'], c=[0.1, 0.6, 0.3], lw=3)
+            ax1.scatter(onset, eyes[0]['RightEye'][onset],s=90,c= [0.7, 0, 0])
+            ax1.scatter(onset, eyes[0]['LeftEye'][onset],s=90, c=[0.7, 0, 0])
+
+            ax1.set_ylabel('Eye angle ($^\circ$)', fontsize=30)
+
+            ax2.plot(TailEye[0]['tail'], c=[0.5, 0.5, 0.5], lw=3)
+            ax2.plot(range(TailEye[0]['frames'][0], TailEye[0]['frames'][1]), TailEye[0]['bout_angles'],
+                     c=[0.6, 0, 0.3], lw=4)
+            ax2.set_ylabel('Tail angle ($^\circ$)', fontsize=30)
+            ax2.set_xlabel('Frame', fontsize=40)
+
+            f.align_ylabels()
+            plt.savefig(plotdir + trial_name + ".png")
+            plt.close()
+            stop
             pc_onset.append(onset)
             avg_tail.append(tail)
             first_pc_bout = 0  # set to 0 to notify that first PC bout is found
@@ -316,8 +345,11 @@ print('# OF FISH WITH PC', len(set(sample_fish)))
 print('TOTAL # OF PREY CAPTURES', PC)
 print("TOTAL # OF TRIALS", len(eye_files))
 # print(np.mean(response_time), np.std(response_time))
-results = izip_longest(fish_PC, pc_onset, duration, avg_tail, max_tail, pre_version, post_version, delta_version, pre_saccade_left, post_saccade_left, pre_saccade_right, post_saccade_right)
-header = izip_longest(['Fish'], ['PC Onset'], ['Bout duration'], ['Mean Tail'], ['Max Tail'], ['Pre-Version'], ['Post-Version'], ['Delta-Version'], ['Pre-saccade left'], ['Post-saccade left'], ['Pre-saccade right'], ['Post-saccade right'])
+results = izip_longest(fish_PC, pc_onset, duration, avg_tail, max_tail, pre_version, post_version, delta_version,
+                       pre_saccade_left, post_saccade_left, pre_saccade_right, post_saccade_right)
+header = izip_longest(['Fish'], ['PC Onset'], ['Bout duration'], ['Mean Tail'], ['Max Tail'], ['Pre-Version'],
+                      ['Post-Version'], ['Delta-Version'], ['Pre-saccade left'], ['Post-saccade left'],
+                      ['Pre-saccade right'], ['Post-saccade right'])
 
 with open(maindir + "Summary" + '.csv', 'wb') as myFile:
     # with open(dir_output + 'Velocity_Acceleration_' + filename + '.csv', 'wb') as myFile:
