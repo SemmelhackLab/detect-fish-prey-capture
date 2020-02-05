@@ -117,6 +117,8 @@ post_saccade_right = []
 
 pc_onset = []
 avg_tail = []
+max_tail = []
+version = []
 for j in range(0, len(eye_files)):  # READ EACH TRIAL
 
     # Display which file is currently being processed
@@ -256,6 +258,9 @@ for j in range(0, len(eye_files)):  # READ EACH TRIAL
             PC += 1  # is there a prey capture in this trial?
             fish_PC.append(trial_name)
             sample_fish.append(eye_files[j][3])
+
+            max_tail.append(np.max(TailEye[i]['bout_angles']))
+            version.append(eyes[0]['LeftEye'][onset] - eyes[0]['RightEye'][onset])
 
             pre_saccade_left.append(eyes[0]['LeftEye'][l_sac_on - int((pre_post_saccade_win[0] * float(Fs)))])
             post_saccade_left.append(eyes[0]['LeftEye'][l_sac_on + int((pre_post_saccade_win[1] * float(Fs)))])
