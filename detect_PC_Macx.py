@@ -118,7 +118,10 @@ post_saccade_right = []
 pc_onset = []
 avg_tail = []
 max_tail = []
-version = []
+pre_version = []
+post_version = []
+delta_version =[]
+
 for j in range(0, len(eye_files)):  # READ EACH TRIAL
 
     # Display which file is currently being processed
@@ -187,7 +190,8 @@ for j in range(0, len(eye_files)):  # READ EACH TRIAL
         if first_pc_bout == 0:  # Check whether 1st prey capture bout has already been found
             print("First prey capture bout already found")
             continue
-        if TailEye[i]['frames'][0] < 300 or TailEye[i]['frames'][0] > 1800:
+
+        if TailEye[i]['frames'][0] < 300.0 or TailEye[i]['frames'][0] > 1800.0:
             print("No stimulus yet")
             continue
 
@@ -254,19 +258,25 @@ for j in range(0, len(eye_files)):  # READ EACH TRIAL
         #    print("NO STIMULUS YET")
         #    continue
 
+        pre_post_saccade_win[0] = int((pre_post_saccade_win[0] * float(Fs)))
+        pre_post_saccade_win[1] = int((pre_post_saccade_win[1] * float(Fs)))
+        
         if first_pc_bout == 1:  # first bout
             PC += 1  # is there a prey capture in this trial?
             fish_PC.append(trial_name)
             sample_fish.append(eye_files[j][3])
 
             max_tail.append(np.max(TailEye[i]['bout_angles']))
-            version.append((eyes[0]['LeftEye'][onset] - eyes[0]['RightEye'][onset])/2.0)
+            pre_version.append((eyes[0]['LeftEye'][onset - pre_post_saccade_win[0]] - eyes[0]['RightEye'][onset - pre_post_saccade_win[0]])/2.0)
+            post_version.append((eyes[0]['LeftEye'][onset - pre_post_saccade_win[1]] + eyes[0]['RightEye'][onset + pre_post_saccade_win[1]])/2.0)
+            
+            delta_version.append(((eyes[0]['LeftEye'][onset - pre_post_saccade_win[1]] + eyes[0]['RightEye'][onset + pre_post_saccade_win[1]])/2.0) - ((eyes[0]['LeftEye'][onset - pre_post_saccade_win[0]] - eyes[0]['RightEye'][onset - pre_post_saccade_win[0]])/2.0))
+            
+            pre_saccade_left.append(eyes[0]['LeftEye'][l_sac_on - pre_post_saccade_win[0]])
+            post_saccade_left.append(eyes[0]['LeftEye'][l_sac_on + pre_post_saccade_win[1]])
 
-            pre_saccade_left.append(eyes[0]['LeftEye'][l_sac_on - int((pre_post_saccade_win[0] * float(Fs)))])
-            post_saccade_left.append(eyes[0]['LeftEye'][l_sac_on + int((pre_post_saccade_win[1] * float(Fs)))])
-
-            pre_saccade_right.append(eyes[0]['RightEye'][r_sac_on - int((pre_post_saccade_win[0] * float(Fs)))])
-            post_saccade_right.append(eyes[0]['RightEye'][r_sac_on + int((pre_post_saccade_win[1] * float(Fs)))])
+            pre_saccade_right.append(eyes[0]['RightEye'][r_sac_on - pre_post_saccade_win[0]])
+            post_saccade_right.append(eyes[0]['RightEye'][r_sac_on + pre_post_saccade_win[1]])
 
             response_time.append((TailEye[i]['frames'][0] - padding_nonstimulus[0]) / tfactor)
             duration.append(TailEye[i]['frames'])
@@ -282,8 +292,8 @@ print('FISH WITH PC', set(sample_fish))
 print('# OF FISH WITH PC', len(set(sample_fish)))
 print('TOTAL # OF PREY CAPTURES', PC)
 # print(np.mean(response_time), np.std(response_time))
-results = izip_longest(fish_PC, pc_onset, duration, avg_tail, pre_saccade_left, post_saccade_left, pre_saccade_right, post_saccade_right)
-header = izip_longest(['Fish'], ['PC Onset'], ['Bout duration'], ['Mean Tail'], ['Pre-saccade left'], ['Post-saccade left'], ['Pre-saccade right'], ['Post-saccade right'])
+results = izip_longest(fish_PC, pc_onset, duration, avg_tail, max_tail, version, pre_saccade_left, post_saccade_left, pre_saccade_right, post_saccade_right)
+header = izip_longest(['Fish'], ['PC Onset'], ['Bout duration'], ['Mean Tail'], ['Max Tail'], ['Version'], ['Pre-saccade left'], ['Post-saccade left'], ['Pre-saccade right'], ['Post-saccade right'])
 
 with open(maindir + "Summary" + '.csv', 'wb') as myFile:
     # with open(dir_output + 'Velocity_Acceleration_' + filename + '.csv', 'wb') as myFile:
