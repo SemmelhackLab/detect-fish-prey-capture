@@ -318,6 +318,8 @@ for j in range(0, len(eye_files)):  # READ EACH TRIAL
 
             ax1.plot(eyes[0]['RightEye'], c=[0.1, 0.3, 0.6], lw=3)
             ax1.plot(eyes[0]['LeftEye'], c=[0.1, 0.6, 0.3], lw=3)
+            ax1.plot(range(l_sac_on- pre_post_saccade_win[1], l_sac_on + pre_post_saccade_win[1]), eyes[0]['RightEye'][r_sac_on- pre_post_saccade_win[1]:r_sac_on + pre_post_saccade_win[1]], c=[0, 0, 0], lw=3)
+            ax1.plot(range(r_sac_on - pre_post_saccade_win[1], r_sac_on + pre_post_saccade_win[1]), eyes[0]['LeftEye'][l_sac_on- pre_post_saccade_win[1]: l_sac_on + pre_post_saccade_win[1]], c=[0, 0, 0], lw=3)
             ax1.scatter(onset, eyes[0]['RightEye'][onset],s=90,c= [0.7, 0, 0])
             ax1.scatter(onset, eyes[0]['LeftEye'][onset],s=90, c=[0.7, 0, 0])
 
@@ -332,7 +334,7 @@ for j in range(0, len(eye_files)):  # READ EACH TRIAL
             f.align_ylabels()
             plt.savefig(plotdir + trial_name + ".png")
             plt.close()
-            stop
+
             pc_onset.append(onset)
             avg_tail.append(tail)
             first_pc_bout = 0  # set to 0 to notify that first PC bout is found
