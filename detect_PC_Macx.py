@@ -260,7 +260,7 @@ for j in range(0, len(eye_files)):  # READ EACH TRIAL
             sample_fish.append(eye_files[j][3])
 
             max_tail.append(np.max(TailEye[i]['bout_angles']))
-            version.append(eyes[0]['LeftEye'][onset] - eyes[0]['RightEye'][onset])
+            version.append((eyes[0]['LeftEye'][onset] - eyes[0]['RightEye'][onset])/2.0)
 
             pre_saccade_left.append(eyes[0]['LeftEye'][l_sac_on - int((pre_post_saccade_win[0] * float(Fs)))])
             post_saccade_left.append(eyes[0]['LeftEye'][l_sac_on + int((pre_post_saccade_win[1] * float(Fs)))])
