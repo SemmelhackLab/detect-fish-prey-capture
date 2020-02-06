@@ -20,10 +20,11 @@ from itertools import izip_longest
 import seaborn as sns
 from detect_preycapture import *
 
-#plt.style.use(['dark_background'])
+plt.style.use(['dark_background'])
 
 # ============================SET PARAMETERS=======================================================
-
+#====FILTER SOME SAMPLES=========
+false_positives = ['', '', ''] # trial names
 # ---------------------VIDEO RECORDING PARAMETERS------------------------------------------------
 Fs = 300  # Sampling frequency used for the video
 tfactor = Fs / 1000.0  # convert fps to fpms
@@ -289,10 +290,13 @@ for j in range(0, len(eye_files)):  # READ EACH TRIAL
 
         if first_pc_bout == 1:  # first bout
             PC += 1  # is there a prey capture in this trial?
+            if any(x == trial_name for x in false_positives):
+                continue
             fish_PC.append(trial_name)
             sample_fish.append(eye_files[j][3])
 
-            max_tail.append(np.max(TailEye[i]['bout_angles']))
+            max_tail.append(TailEye[i]['bout_angles'][np.argmax(np.abs(TailEye[i]['bout_angles']))])
+
             pre_version.append((eyes[0]['LeftEye'][onset - pre_post_saccade_win[0]] - eyes[0]['RightEye'][
                 onset - pre_post_saccade_win[0]]) / 2.0)
             post_version.append((eyes[0]['LeftEye'][onset - pre_post_saccade_win[1]] + eyes[0]['RightEye'][
@@ -312,27 +316,23 @@ for j in range(0, len(eye_files)):  # READ EACH TRIAL
             response_time.append((TailEye[i]['frames'][0] - padding_nonstimulus[0]) / tfactor)
             duration.append(TailEye[i]['frames'])
 
-            f, (ax1, ax2) = plt.subplots(2, 1, sharex=True, figsize=(14, 10))
+            f, (ax1, ax2) = plt.subplots(2, 1, sharex=True, figsize=(50, 35))
             # f, ax2 = plt.subplots(1, 1, sharex=True, figsize=(50, 35))
             f.subplots_adjust(hspace=0)
-
-            ax1.plot(eyes[0]['RightEye'], c=[0.1, 0.3, 0.6], lw=3)
-            ax1.plot(eyes[0]['LeftEye'], c=[0.1, 0.6, 0.3], lw=3)
-            ax1.plot(range(l_sac_on- pre_post_saccade_win[1], l_sac_on + pre_post_saccade_win[1]), eyes[0]['RightEye'][r_sac_on- pre_post_saccade_win[1]:r_sac_on + pre_post_saccade_win[1]], c=[0, 0, 0], lw=3)
-            ax1.plot(range(r_sac_on - pre_post_saccade_win[1], r_sac_on + pre_post_saccade_win[1]), eyes[0]['LeftEye'][l_sac_on- pre_post_saccade_win[1]: l_sac_on + pre_post_saccade_win[1]], c=[0, 0, 0], lw=3)
-            ax1.scatter(onset, eyes[0]['RightEye'][onset],s=90,c= [0.7, 0, 0])
-            ax1.scatter(onset, eyes[0]['LeftEye'][onset],s=90, c=[0.7, 0, 0])
+            ax1.plot(eyes[0]['RightEye'], c=[0.1, 0.3, 0.6], lw=5)
+            ax1.plot(eyes[0]['LeftEye'], c=[0.1, 0.6, 0.3], lw=5)
+            ax1.scatter(onset, eyes[0]['RightEye'][onset], [0.7, 0, 0])
+            ax1.scatter(onset, eyes[0]['LefttEye'][onset], [0.7, 0, 0])
 
             ax1.set_ylabel('Eye angle ($^\circ$)', fontsize=30)
 
-            ax2.plot(TailEye[0]['tail'], c=[0.5, 0.5, 0.5], lw=3)
+            ax2.plot(time, TailEye[0]['tail'], c=[0.5, 0.5, 0.5], lw=4)
             ax2.plot(range(TailEye[0]['frames'][0], TailEye[0]['frames'][1]), TailEye[0]['bout_angles'],
                      c=[0.6, 0, 0.3], lw=4)
             ax2.set_ylabel('Tail angle ($^\circ$)', fontsize=30)
             ax2.set_xlabel('Frame', fontsize=40)
-
             f.align_ylabels()
-            plt.savefig(plotdir + trial_name + ".png")
+            plt.savefig(trial_name + ".png")
             plt.close()
 
             pc_onset.append(onset)
@@ -342,16 +342,19 @@ for j in range(0, len(eye_files)):  # READ EACH TRIAL
     print(TailEye[0]['filename'])
     print('done')
 
+
 print('FISH WITH PC', set(sample_fish))
 print('# OF FISH WITH PC', len(set(sample_fish)))
 print('TOTAL # OF PREY CAPTURES', PC)
 print("TOTAL # OF TRIALS", len(eye_files))
+
 # print(np.mean(response_time), np.std(response_time))
 results = izip_longest(fish_PC, pc_onset, duration, avg_tail, max_tail, pre_version, post_version, delta_version,
                        pre_saccade_left, post_saccade_left, pre_saccade_right, post_saccade_right)
 header = izip_longest(['Fish'], ['PC Onset'], ['Bout duration'], ['Mean Tail'], ['Max Tail'], ['Pre-Version'],
                       ['Post-Version'], ['Delta-Version'], ['Pre-saccade left'], ['Post-saccade left'],
                       ['Pre-saccade right'], ['Post-saccade right'])
+
 
 with open(maindir + "Summary" + '.csv', 'wb') as myFile:
     # with open(dir_output + 'Velocity_Acceleration_' + filename + '.csv', 'wb') as myFile:
