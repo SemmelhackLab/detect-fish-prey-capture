@@ -299,10 +299,10 @@ for j in range(0, len(eye_files)):  # READ EACH TRIAL
 
             pre_version.append((eyes[0]['LeftEye'][onset - pre_post_saccade_win[0]] - eyes[0]['RightEye'][
                 onset - pre_post_saccade_win[0]]) / 2.0)
-            post_version.append((eyes[0]['LeftEye'][onset - pre_post_saccade_win[1]] + eyes[0]['RightEye'][
+            post_version.append((eyes[0]['LeftEye'][onset + pre_post_saccade_win[1]] - eyes[0]['RightEye'][
                 onset + pre_post_saccade_win[1]]) / 2.0)
 
-            delta_version.append(((eyes[0]['LeftEye'][onset - pre_post_saccade_win[1]] + eyes[0]['RightEye'][
+            delta_version.append(((eyes[0]['LeftEye'][onset + pre_post_saccade_win[1]] - eyes[0]['RightEye'][
                 onset + pre_post_saccade_win[1]]) / 2.0) - ((eyes[0]['LeftEye'][onset - pre_post_saccade_win[0]] -
                                                              eyes[0]['RightEye'][
                                                                  onset - pre_post_saccade_win[0]]) / 2.0))
