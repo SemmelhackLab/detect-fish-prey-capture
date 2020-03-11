@@ -20,27 +20,27 @@ from itertools import izip_longest
 import seaborn as sns
 from detect_preycapture import *
 
-plt.style.use(['dark_background'])
+# plt.style.use(['dark_background'])
 
 # ============================SET PARAMETERS=======================================================
-#====FILTER SOME SAMPLES=========
-false_positives = ['', '', ''] # trial names
+# ====FILTER SOME SAMPLES=========
+# false_positives = ['', '', ''] # trial names
 # ---------------------VIDEO RECORDING PARAMETERS------------------------------------------------
 Fs = 300  # Sampling frequency used for the video
 tfactor = Fs / 1000.0  # convert fps to fpms
 # ---------------------PARAMETERS FOR EXTRACTING THE BOUTS------------------------------------------------
-bout_thresh = 0.40  # 0.00 - 1.00 threshold value for extracting bouts, higher more bouts
+bout_thresh = 0.20  # 0.00 - 1.00 threshold value for extracting bouts, higher more bouts
 peakthres = 4  # 0.00 - 20.00 lower vale more peaks, for calculating tail beat frequency
 # ---------------------PARAMETERS FOR DETECTING THE PREY CAPTURE BOUTS, MINIMUM VALUES-----------------------------------
 filter_avg_tail = 5.0  # threshold for average tail bout angle
-filter_avg_max_tail = 15.0  # threshold for max tail angle
+filter_avg_max_tail = 30.0  # threshold for max tail angle
 filter_avg_binocular = 25.0  # threshold for eye angle binocular convergence, unit in degrees
 filter_length_bout = 0  # length of bout based on frame number, unit in frame number
 filter_eye_vel = -0.1  # diverging eye velocity in degrees/ms, unit in deg/ms
 filter_eye_diverge = -1.0  # eye divergence by degrees, unit in deg
 thresh_saccade_speed = 0.2  # the onset of eye movement should be greater than saccade threshold, unit in deg/ms
 # ---------------------PARAMETERS FOR EXTRACTING PRE AND POST SACCADIC BOUTS------------------------------------------------
-pre_post_saccade_win = [0.5, 0.5]  # pre and post saccadic threshold in seconds
+pre_post_saccade_win = [0.2, 0.2]  # pre and post saccadic threshold in seconds
 pre_post_saccade_win[0] = int((pre_post_saccade_win[0] * float(Fs)))
 pre_post_saccade_win[1] = int((pre_post_saccade_win[1] * float(Fs)))
 # ---------------------VISUAL PREY PARAMETERS------------------------------------------------
@@ -61,8 +61,15 @@ cutoff = 10  # desired cutoff frequency of the filter, Hz
 # THIS PART IS ONLY FOR COMPILING ALL THE INPUT FILES. THIS IS SUBJECTIVE, IT DEPENDS ON HOW YOU ORGANIZE YOUR DATA
 # I organize it this way home/experiment/fish/data (eye, tail), This part will combine all the experiments I have
 # Directories
+parameters = ['Tail: ' + str(filter_avg_tail), 'MaxTail: ' + str(\
+    filter_avg_max_tail), 'Binocular: ' + str(filter_avg_binocular), 'Bout Lenght: '\
+    + str(filter_length_bout), 'Eye Velocity: ' + str(filter_eye_vel), 'Eye Divergence: '\
+    + str(filter_eye_diverge), 'Saccade Velocity: ' + str(thresh_saccade_speed),
+    'Saccade Window: ' + str(pre_post_saccade_win[0]) + ' & ' + str(pre_post_saccade_win[1]), 'Bout Threshold: '\
+    + str(bout_thresh)]
+
 maindir = 'F:\\Macx\\export\\analysis\\Master directory\\'
-dir_output = maindir
+dir_output = maindir + '\\output\\param\\'
 
 expts = list()
 expts += [xp for xp in os.listdir(maindir) if ".csv" not in xp]  # store the fish filenames
@@ -290,8 +297,8 @@ for j in range(0, len(eye_files)):  # READ EACH TRIAL
 
         if first_pc_bout == 1:  # first bout
             PC += 1  # is there a prey capture in this trial?
-            if any(x == trial_name for x in false_positives):
-                continue
+            # if any(x == trial_name for x in false_positives):
+            #    continue
             fish_PC.append(trial_name)
             sample_fish.append(eye_files[j][3])
 
@@ -316,23 +323,47 @@ for j in range(0, len(eye_files)):  # READ EACH TRIAL
             response_time.append((TailEye[i]['frames'][0] - padding_nonstimulus[0]) / tfactor)
             duration.append(TailEye[i]['frames'])
 
-            f, (ax1, ax2) = plt.subplots(2, 1, sharex=True, figsize=(50, 35))
+            f, (ax1, ax2) = plt.subplots(2, 1, sharex=True, figsize=(14, 10))
             # f, ax2 = plt.subplots(1, 1, sharex=True, figsize=(50, 35))
             f.subplots_adjust(hspace=0)
-            ax1.plot(eyes[0]['RightEye'], c=[0.1, 0.3, 0.6], lw=5)
-            ax1.plot(eyes[0]['LeftEye'], c=[0.1, 0.6, 0.3], lw=5)
-            ax1.scatter(onset, eyes[0]['RightEye'][onset], [0.7, 0, 0])
-            ax1.scatter(onset, eyes[0]['LefttEye'][onset], [0.7, 0, 0])
+
+            ax1.plot(eyes[0]['RightEye'], c=[0.1, 0.3, 0.6], lw=4)
+            ax1.plot(eyes[0]['LeftEye'], c=[0.1, 0.6, 0.3], lw=4)
+            ax1.plot(range(l_sac_on - pre_post_saccade_win[0], l_sac_on + pre_post_saccade_win[1]),
+                     eyes[0]['LeftEye'][l_sac_on - pre_post_saccade_win[0]: l_sac_on + pre_post_saccade_win[1]],
+                     c=[0, 0, 0], lw=5)
+            ax1.plot(range(r_sac_on - pre_post_saccade_win[0], r_sac_on + pre_post_saccade_win[1]),
+                     eyes[0]['RightEye'][r_sac_on - pre_post_saccade_win[0]: r_sac_on + pre_post_saccade_win[1]],
+                     c=[0, 0, 0], lw=5)
+
+            ax1.scatter(onset, eyes[0]['RightEye'][onset], c=[0.7, 0, 0], s=80)
+            ax1.scatter(onset, eyes[0]['LeftEye'][onset], c=[0.7, 0, 0], s=80)
 
             ax1.set_ylabel('Eye angle ($^\circ$)', fontsize=30)
 
-            ax2.plot(time, TailEye[0]['tail'], c=[0.5, 0.5, 0.5], lw=4)
-            ax2.plot(range(TailEye[0]['frames'][0], TailEye[0]['frames'][1]), TailEye[0]['bout_angles'],
+            ax2.plot(TailEye[i]['tail'], c=[0.5, 0.5, 0.5], lw=4)
+            ax2.plot(range(TailEye[i]['frames'][0], TailEye[i]['frames'][1]), TailEye[i]['bout_angles'],
                      c=[0.6, 0, 0.3], lw=4)
             ax2.set_ylabel('Tail angle ($^\circ$)', fontsize=30)
             ax2.set_xlabel('Frame', fontsize=40)
             f.align_ylabels()
-            plt.savefig(trial_name + ".png")
+
+            for ij in range(1, 1000):
+                if not os.path.exists(dir_output + str(ij)):  # create an output directory
+                    os.makedirs(dir_output + str(ij))
+                    break
+                elif os.path.exists(dir_output + 'ij'):  # create an output directory
+                    new_dir_output = dir_output + str(ij)
+                    if not os.path.exists(new_dir_output):
+                        os.makedirs(new_dir_output)
+                        break
+                    if os.path.exists(new_dir_output):
+                        continue
+
+            with open(dir_output + "\\parameters.txt", "w") as text_file:
+                [text_file.write(L + os.linesep) for L in parameters]
+
+            plt.savefig(dir_output + '\\' + trial_name + ".png")
             plt.close()
 
             pc_onset.append(onset)
@@ -341,7 +372,6 @@ for j in range(0, len(eye_files)):  # READ EACH TRIAL
 
     print(TailEye[0]['filename'])
     print('done')
-
 
 print('FISH WITH PC', set(sample_fish))
 print('# OF FISH WITH PC', len(set(sample_fish)))
@@ -354,7 +384,6 @@ results = izip_longest(fish_PC, pc_onset, duration, avg_tail, max_tail, pre_vers
 header = izip_longest(['Fish'], ['PC Onset'], ['Bout duration'], ['Mean Tail'], ['Max Tail'], ['Pre-Version'],
                       ['Post-Version'], ['Delta-Version'], ['Pre-saccade left'], ['Post-saccade left'],
                       ['Pre-saccade right'], ['Post-saccade right'])
-
 
 with open(maindir + "Summary" + '.csv', 'wb') as myFile:
     # with open(dir_output + 'Velocity_Acceleration_' + filename + '.csv', 'wb') as myFile:
